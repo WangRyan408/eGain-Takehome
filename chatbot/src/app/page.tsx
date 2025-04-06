@@ -64,7 +64,7 @@ export default function Page() {
   const [delayNotif, setDelayNotif] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [badInput, setBadInput] = useState<number>(0);
-  const [agentConnected, setAgentConnected] = useState(false);
+  //const [agentConnected, setAgentConnected] = useState(false);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -104,12 +104,6 @@ export default function Page() {
   const generateResponse = (userMessage: string): string | undefined => {
     const trackingNumber = extractTrackingNumber(userMessage);
 
-    if (badInput > 5) {
-      setAgentConnected(true);
-      connectToAgent();
-      setBadInput(0);
-      return `I'm unable to understand your requests. Transferring you to a customer service agent.`;
-    }
     // Check if the user provided a tracking number or order ID
     if (trackingNumber) {
       const trackingInfo = trackingDatabase[trackingNumber];  // Finds tracking info from our "database"
@@ -122,7 +116,7 @@ export default function Page() {
       switch (trackingInfo.status) {
         // If the package is in transit, provide the location and ETA
         case "in_transit":
-          return `I found your package with tracking number ${trackingNumber}! It's currently in transit at ${trackingInfo.location}. Expected delivery is in ${trackingInfo.eta}. Is there anything else you'd like to know about your package?`;
+          return `I found your package with tracking number ${trackingNumber}! It's currently in transit at ${trackingInfo.location}. Expected delivery is in ${trackingInfo.eta}.`;
           break;
 
         // If the package is delayed, provide the reason and new ETA
@@ -155,7 +149,7 @@ export default function Page() {
     switch (true) {
       case messageLower.includes("person") || messageLower.includes("human") || messageLower.includes("agent") || messageLower.includes("support"):
         // Fake function that in a real app would open a websocket connection to a live agent.
-        setAgentConnected(true);
+        //setAgentConnected(true);
         connectToAgent();  
         return "I'd be happy to connect you with a customer service representative. Please hold while I transfer you to the next available agent.";
         break;
@@ -184,8 +178,17 @@ export default function Page() {
         
       // Fallback response for unrecognized input
       default:
-        setBadInput(badInput + 1);
+        setBadInput(badInput => badInput + 1);
+        console.log({"badInput": badInput});
+        if (badInput > 5) {
+          console.log({"badInput": badInput});
+          //setAgentConnected(true);
+          connectToAgent();
+          setBadInput(0);
+          return `I'm unable to understand your requests. Transferring you to a customer service agent. (NOT ACTUALLY FUNCTIONAL)`;
+        }
         return "I'm not sure I understand. To help you track your package, please provide your tracking number (format: TRK123456789).";
+        break;
     }
   }
 
@@ -206,10 +209,12 @@ export default function Page() {
     setIsLoading(true);
     setError(null);
 
-    if (agentConnected) {
-      // Code for websocket message here
-      // websocket message would be pushed into message state array
-    } else {
+    
+    // if (agentConnected)  
+    // Code for websocket message here
+    // websocket message would be pushed into message state array
+    // else run below code
+
     // Simulate processing delay for OPTIMAL user experience
     setTimeout(() => {
       try {
@@ -232,7 +237,7 @@ export default function Page() {
         setIsLoading(false);
       }
     }, 1000) // Could play around with this value
-  }
+  
   }
 
   return (
@@ -278,7 +283,7 @@ export default function Page() {
       </header>
       <main className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin">
         <div className="max-w-3xl mx-auto space-y-4">
-          {error && (
+        {error && (
             <Alert variant="destructive" className="mb-4 border-l-4 border-red-600 bg-red-50">
               <div className="flex justify-between items-center">
                 <div>
