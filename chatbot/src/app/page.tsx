@@ -10,37 +10,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Moon, Sun, Laptop } from "lucide-react";
 import { useTheme } from "next-themes";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { TrackingInfo } from "@/app/types/TrackingInfo";
+import  { trackingDatabase } from "@/app/_database/trackingDatabase";
 
-
-// Mock database of tracking numbers and their statuses because not a real db.
-const trackingDatabase: { [key: string]: TrackingInfo } = {
-  'TRK123456789': {
-    status: "in_transit",
-    location: "Chicago Distribution Center",
-    eta: "2 days",
-    lastUpdate: "2025-04-02T14:30:00Z",
-  },
-  'TRK987654321': {
-    status: "delayed",
-    location: "Denver Sorting Facility",
-    reason: "Weather conditions",
-    eta: "4 days",
-    lastUpdate: "2025-04-01T09:15:00Z",
-  },
-  'TRK555555555': {
-    status: "lost",
-    lastSeen: "Atlanta Hub",
-    eta: "Unknown",
-    reason: "Unknown",
-    lastUpdate: "2025-03-22T2:30:00Z",
-  },
-  'TRK473902030': {
-    status: "delivered",
-    lastSeen: "On Delivery Vehicle",
-    lastUpdate: "2025-03-25T6:45:00Z",
-  }
-}
 
 // Helper to extract tracking numbers from text
 function extractTrackingNumber(text: string): string | null {
@@ -65,11 +36,18 @@ function sendMissingPackageClaim(text: string): string {
 }
 
 function connectToAgent(): void {
+  
   // Placeholder function to connect to a customer service agent
   // In a real application, this would initiate a websockett connection to a live agent
   console.log("Connecting to customer service agent...");
 }
 
+function delayNotification(email: string): void {
+  const emailAddress = emailChecker(email);
+  // Placeholder function to send a delay notification
+  // In a real application, this would create a hook to send an email notification when eta changes in the database
+  console.log("Sending delay notification to:", emailAddress);
+}
 
 type Message = {
   id: string;
@@ -83,7 +61,10 @@ export default function Page() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [startClaim, setStartClaim] = useState(false);
+  const [delayNotif, setDelayNotif] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [badInput, setBadInput] = useState<number>(0);
+  const [agentConnected, setAgentConnected] = useState(false);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -123,6 +104,12 @@ export default function Page() {
   const generateResponse = (userMessage: string): string | undefined => {
     const trackingNumber = extractTrackingNumber(userMessage);
 
+    if (badInput > 5) {
+      setAgentConnected(true);
+      connectToAgent();
+      setBadInput(0);
+      return `I'm unable to understand your requests. Transferring you to a customer service agent.`;
+    }
     // Check if the user provided a tracking number or order ID
     if (trackingNumber) {
       const trackingInfo = trackingDatabase[trackingNumber];  // Finds tracking info from our "database"
@@ -140,22 +127,25 @@ export default function Page() {
 
         // If the package is delayed, provide the reason and new ETA
         case "delayed":
-          return `I found your package with tracking number ${trackingNumber}. Unfortunately, it's currently delayed at ${trackingInfo.location} due to ${trackingInfo.reason}. The new estimated delivery is in ${trackingInfo.eta}. Would you like me to notify you when there's an update?`;
+          setDelayNotif(true);
+          return `I found your package with tracking number ${trackingNumber}. Unfortunately, it's currently delayed at ${trackingInfo.location} due to ${trackingInfo.reason}. The new estimated delivery is in ${trackingInfo.eta}. Would you like me to notify you when there's an update? If so, respond with "yes" and your email address.`;
           break;
 
         // If the package is lost, provide the last known location and ask if they want to file a claim
         case "lost":
+          setStartClaim(true);
           return `I'm sorry, but it appears that your package with tracking number ${trackingNumber} may be lost. It was last seen at ${trackingInfo.lastSeen} on ${trackingInfo.lastUpdate ? new Date(trackingInfo.lastUpdate).toLocaleDateString() : "Unknown Date"}. Would you like to file a missing package claim?`;
           break;
 
         // If the package is delivered, provide advice and prompt them to ask for a human agent if necessary.
         case "delivered":
+          setStartClaim(true);
           return `It looks like your package has already been marked as delivered. Your delivery driver may have left the package out of view. Please check your mailbox, porch, or with your neighbors. If you still can't find it, please let me know and I can help you file a claim.`;
           break;
         
         // If there's some crazy error where the tracking number is in the database but has no valid status.
         default:
-          return `Error: Unknown status for tracking number ${trackingNumber}. Please contact customer support for assistance.`;
+          return `Error: Unknown status for tracking number ${trackingNumber}. Please contact customer support for further assistance.`;
           break;
       }
     }
@@ -165,12 +155,13 @@ export default function Page() {
     switch (true) {
       case messageLower.includes("person") || messageLower.includes("human") || messageLower.includes("agent") || messageLower.includes("support"):
         // Fake function that in a real app would open a websocket connection to a live agent.
+        setAgentConnected(true);
         connectToAgent();  
         return "I'd be happy to connect you with a customer service representative. Please hold while I transfer you to the next available agent.";
         break;
 
-      case messageLower.includes("claim") || messageLower.includes("missing"):
-        setStartClaim(true);
+      case (messageLower.includes("claim") || messageLower.includes("yes")) && startClaim == true:
+        //setStartClaim(true);
         return "To file a missing package claim, I'll need some additional information. Please provide your email address and a brief description of the package contents.";
         break;
 
@@ -183,11 +174,17 @@ export default function Page() {
 
       // If user asks for help again, bot prompts user to ask anything else.
       case messageLower.includes("help") || messageLower.includes("lost package"):
-        return "I can help you track your lost package. Please provide your tracking number (format: TRK123456789) or order ID (format: ORD12345).";
+        return "I can help you track your lost package. Please provide your tracking number (format: TRK123456789)";
         break;
       
+      case messageLower.includes("yes") && emailChecker(messageLower) !== "" && delayNotif == true:
+          setDelayNotif(false);
+          delayNotification(userMessage);
+          return "You've just signed up for notification updates. We'll let you know when there's an update on your package's status.";
+        
       // Fallback response for unrecognized input
       default:
+        setBadInput(badInput + 1);
         return "I'm not sure I understand. To help you track your package, please provide your tracking number (format: TRK123456789).";
     }
   }
@@ -209,6 +206,10 @@ export default function Page() {
     setIsLoading(true);
     setError(null);
 
+    if (agentConnected) {
+      // Code for websocket message here
+      // websocket message would be pushed into message state array
+    } else {
     // Simulate processing delay for OPTIMAL user experience
     setTimeout(() => {
       try {
@@ -231,6 +232,7 @@ export default function Page() {
         setIsLoading(false);
       }
     }, 1000) // Could play around with this value
+  }
   }
 
   return (
