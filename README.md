@@ -47,7 +47,7 @@ This chatbot has some tracking numbers hardcoded in for testing purposes. They'r
 
 Play around with each one!
 
-### Approach to Design and Structure
+## Approach to Design and Structure
 
 - Design
    - When it comes to design, I've recently been into scaffolding projects with NextJS. NextJS comes with the TailWindCSS library and Shadcn/UI component library &mdash; which I think looks amazing. The instructions for this assignment were to just spend a short period of time to build a simple UI (either in browser or tty), but I wanted to go a step further and make this pleasing to the eye. After all, such a tool would surely be intended for users/consumers. I've added refs to scroll to the bottom on every new message, as well as a ref to keep focus on the input text box so the user doesn't have to manually click on the text box after sending each message.
@@ -56,7 +56,8 @@ Play around with each one!
 
 *Additional Notes*: This is my first time building anything in NextJS (although I'm not using RSCs like its designed for) and shadcn. I'm still not super familiar with TailWind but this was a great learning opportunity. 
 
-*Screenshots of example scenarios below*
+
+## Screenshots
 
 - Light Mode
 ![The chatbot interface in light mode](./images/package_tracker_light.png)
