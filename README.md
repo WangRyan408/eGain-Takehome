@@ -51,12 +51,15 @@ Play around with each one!
 
 ## Approach to Design and Structure
 
-- Design
-   - When it comes to design, I've recently been into scaffolding projects with NextJS. NextJS comes with the TailWindCSS library and Shadcn/UI component library &mdash; which I think looks amazing. The instructions for this assignment were to just spend a short period of time to build a simple UI (either in browser or tty), but I wanted to go a step further and make this pleasing to the eye. After all, such a tool would surely be intended for users/consumers. 
 - Technicals
+   - When it comes to design, I've recently been into scaffolding projects with NextJS. NextJS comes with the TailWindCSS library and Shadcn/UI component library &mdash; which I think looks amazing. The instructions for this assignment were to just spend a short period of time to build a simple UI (either in browser or tty), but I wanted to go a step further and make this pleasing to the eye. After all, such a tool would surely be intended for users/consumers.
+   - A lot of the heavy work is handled by React. It's declarative unlike the imperative nature of vanilla javascript, meaning I don't have to deal with stuff like addEventListener and just tell it to do it.
+   - Initially I had all my bot responses in an if else structure, but the amount of responses I put in ended up looking too unreadable so I opted for a switch statement instead. 
+- Design
     - I chose the first scenario of helping customers track lost packages, and I started off with asking myself what sort of situations could a package potentially find itself in. After thinking about it, I landed on five distinct states: in transit, delayed, lost, delivered, or unknown. I set up switch statements based on the package's known state in the database, and if for some reason the tracking number returned a status that wasn't the previous four, it would prompt the user to seek a human agent to help. Lastly, there is a fallback for if no other conditional catches what a customer may potentially want. It reiterates what the user should type in to receive proper support. 
 - Future Additions
-    - I've added functions for passing on messaging from the bot to a human agent but without any actual implementation due to lack of a backend/actual db.
+    - I've added functions for passing on messaging from the bot to a human agent but without any actual implementation due to lack of a backend/actual db. In the future I'd like to add those.
+    - Integrate the OpenAI or DeepSeek API to have an LLM catch user input instead. They're much more versatile and DeepSeek discount pricing is quite good!
 
 *Additional Notes*: This is my first time building anything in NextJS (although I'm not using RSCs like its designed for) and shadcn. I'm still not super familiar with TailWind but this was a great learning opportunity. 
 
