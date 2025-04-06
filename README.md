@@ -1,7 +1,9 @@
 # eGain Internship Takehome Assignment
 
+Package Tracking Chatbot
+
 ## Running Locally
-Below are instructions on running the chatbot locally. Due to the nature of the assignment, all data is hardcoded locally in an object at the top of the page.tsx file.
+Below are instructions on running the chatbot locally. Due to the nature of the assignment, all data is hardcoded locally in an object passed into the page.
 
 ### Prerequisites
 
