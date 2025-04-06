@@ -94,6 +94,7 @@ export default function Page() {
     }
   }, [messages]);
 
+  //useEffect to focus on input field on each render but not while message is loading.
   useEffect(() => {
     if (!isLoading) {
       inputRef.current?.focus();
@@ -113,6 +114,7 @@ export default function Page() {
         return `I couldn't find any information for tracking number ${trackingNumber}. Please verify the number and try again.`;
       }
   
+      // Decision tree based on the package status
       switch (trackingInfo.status) {
         // If the package is in transit, provide the location and ETA
         case "in_transit":
@@ -154,6 +156,7 @@ export default function Page() {
         return "I'd be happy to connect you with a customer service representative. Please hold while I transfer you to the next available agent.";
         break;
 
+      // If startClaim flag is true, means user has been asked about filing a claim. Further information is given in this response.
       case (messageLower.includes("claim") || messageLower.includes("yes")) && startClaim == true:
         //setStartClaim(true);
         return "To file a missing package claim, I'll need some additional information. Please provide your email address and a brief description of the package contents.";
@@ -171,6 +174,7 @@ export default function Page() {
         return "I can help you track your lost package. Please provide your tracking number (format: TRK123456789)";
         break;
       
+      // If user goes through delayed package and notification flag is true, bot responds to user with confirmation of future notifications.
       case messageLower.includes("yes") && emailChecker(messageLower) !== "" && delayNotif == true:
           setDelayNotif(false);
           delayNotification(userMessage);
@@ -192,9 +196,10 @@ export default function Page() {
     }
   }
 
+  //Event handler for form submission
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+    e.preventDefault(); // Always prevent default browswer behavior
+    if (!input.trim()) return;  // Early exit for empty input
 
     // User Message Schema and Data
     const userMessage: Message = {
@@ -231,6 +236,7 @@ export default function Page() {
         setMessages((prev) => [...prev, assistantMessage]);
         setIsLoading(false);
         
+        //Error handling
       } catch (err) {
         console.error("Error generating response:", err);
         setError("There was a problem processing your request. Please try again.");
