@@ -40,10 +40,10 @@ $ npm run dev
 ### Usage
 
 This chatbot has some tracking numbers hardcoded in for testing purposes. They're listed below for your convenience.
-- TRK123456789
-- TRK987654321
-- TRK555555555
-- TRK473902030
+- TRK123456789 (in transit)
+- TRK987654321 (delayed)
+- TRK555555555 (lost)
+- TRK473902030 (delivered)
 
 Play around with each one!
 
